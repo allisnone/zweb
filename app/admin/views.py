@@ -3,12 +3,17 @@
 
 from . import admin as auth
 from flask import render_template , url_for, session, redirect,request,jsonify
-from ..models import User , LoginForm , RegisterForm #, Article 
+from ..models import User , LoginForm , RegisterForm ,db #, Article 
 from flask_login import current_user , login_required , login_user , logout_user , user_logged_in,LoginManager
-
+from flask_wtf.csrf import CsrfProtect
+# use login manager to manage session
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'login'
+# csrf protection
+csrf = CsrfProtect()
+
+
 
 @auth.route("/test")
 def test():
@@ -29,14 +34,17 @@ def mcc_time():
 def mcc_info(str):
     return str
 
+def form_analysis(form):
+    return {}
+
 @auth.route('/register',methods=['POST','GET'])
 def register():
     if current_user.is_authenticated:
-        dic=make_json_dic(301,user_username='annoyance',date=mcc_time(),info=mcc_info('you have already authenticated.'))
+        dic = make_json_dic(301,user_username='annoyance',date=mcc_time(),info=mcc_info('you have already authenticated.'))
         return jsonify(dic)       
     else:
         if request.method=='POST':
-            form=Register_Form()
+            form = Register_Form()
             if form.mcc_validate():
             #if form.validate_on_submit():
                 name=form.username.data
@@ -85,13 +93,13 @@ def login():
         dic=make_json_dic(200,user_username=current_user.name,date=mcc_time(),info='current user is authenticated.')
         return jsonify(dic)    
     else:       
-        form=Login_Form()
+        form=LoginForm()
         dic=form_analysis(form)
         if dic!=None:
             if request.method=='POST':
                 username=dic['username']
                 password=dic['password']
-                user=User.query.filter_by(name=username).first()
+                user=User.query.filter_by(username=username).first()
                 if user is not  None and password==user.password and user.confirmed==True:
                     session["username"]=username
                     session["password"]=password

@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 #Author: allisnone
 from flask import Flask
+import os
 
 
 app = Flask(__name__,
@@ -20,5 +21,5 @@ from app.zip import zip as zip_blueprint
 app.register_blueprint(home_blueprint)
 app.register_blueprint(admin_blueprint,url_prefix="/admin")
 app.register_blueprint(zip_blueprint,url_prefix="/zip")
-
+app.secret_key = os.urandom(24)
 
