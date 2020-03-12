@@ -15,3 +15,4 @@ from app.zip import zip as zip_blueprint
 app.register_blueprint(home_blueprint)
 app.register_blueprint(admin_blueprint,url_prefix="/admin")
 app.register_blueprint(zip_blueprint,url_prefix="/zip")
+
