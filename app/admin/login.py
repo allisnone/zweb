@@ -1,4 +1,7 @@
-from . import auth
+# -*- coding:utf-8 -*-
+#Author: allisnone
+
+from . import admin as auth
 from flask import render_template , url_for, session, redirect
 
 from ..models import User , Login_Form , Register_Form , Article 
