@@ -1,0 +1,9 @@
+#requirements.txt文件配置
+
+#主要作用是记录需要的依赖包，新环境部署时安装如下依赖包即可，pip安装命令: pip install -r requirements.txt
+
+Flask==0.10.1
+Flask-Bootstrap==3.3.5.6
+Flask-Login==0.2.11
+Flask-SQLAlchemy==2.0
+Flask-WTF==0.12
