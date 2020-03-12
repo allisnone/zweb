@@ -8,6 +8,10 @@ app = Flask(__name__,
         #static_url_path='/opt/auras/static',     #指定静态文件存放路径。
          ) 
 app.debug = True
+#DB的连接词
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+#默认True，SQLAlchemy会记录下对象的变动，可以理解成写log
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 from app.home import home as home_blueprint
 from app.admin import admin as admin_blueprint

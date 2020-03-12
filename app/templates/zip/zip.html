@@ -1,1 +1,166 @@
-"<h1 style='color:green'>这是zip前台</h1>"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Zip Image</title>
+</head>
+<body>
+<form action="">
+Please Set Expected Size Range for The Image: <br>
+Max Image Size (KB):  <input type="text" id="max_size" name="max" value="500">
+<br>
+Min Image Size (KB):  <input type="text" id="min_size" name="min" value="200">
+<br>
+<input type="file" onchange="change(this)">
+</form>
+    
+    <div id="imgBox">
+        
+    </div>
+	
+Calculate Image Base64:
+<br>  	
+<input accept="image/*" name="upimage" id="upload_file" type="file">
+<textarea id="base64_output" name="Word" style=" width:820px"></textarea>
+</body>
+<script>
+    function change(self){
+        //上传图片之后的对象数组；（如果后台约定直接通过formData上传，直接上传这里面的对象就好了，可以自行百度）
+        console.log(self.files);
+        //创建一个读取文件的对象
+		var max_size=document.getElementById('max_size').value;
+		//console.log(max_size);
+		var min_size=document.getElementById('min_size').value;
+		//console.log(min_size);
+        let reader = new FileReader();
+        //读取文件，转码
+        reader.readAsDataURL(self.files[0]);
+        reader.onload = function (e) {
+            let base64 = e.target.result; //转码过后的base64编码
+            console.log("压缩前图片大小(KB)", base64.length / 1024);
+            //创建一个图片
+            let newImage = new Image();
+			let quality = 0.8;    //压缩系数0-1之间，压缩到0.9以上会有bug，注意！（可以自行设置）
+			newImage.src = base64;
+            newImage.setAttribute("crossOrigin", 'Anonymous');	//url为外域时需要
+			let imgWidth, imgHeight;
+            newImage.onload = function () {
+				imgWidth = this.width;
+				imgHeight = this.height;
+                //给生成图片设置一个默认的最大宽/高（可以自行设置）
+                let myWidth = 800;
+                //准备在画布上绘制图片
+				let canvas = document.createElement("canvas");
+				let ctx = canvas.getContext("2d");
+                //判断上传的图片的宽高是否超过设置的默认最大值，以及设置同比例的宽高
+				if (Math.max(imgWidth, imgHeight) > myWidth) {
+					if (imgWidth > imgHeight) {
+						canvas.width = myWidth;
+						canvas.height = myWidth * imgHeight / imgWidth;
+					} else {
+						canvas.height = myWidth;
+						canvas.width = myWidth * imgWidth / imgHeight;
+					}
+				} else {
+					canvas.width = imgWidth;
+					canvas.height = imgHeight;
+				}
+                //清空画布
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+                //开始绘制图片到画布上
+				ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
+				// 将canvas的透明背景设置成白色   
+		        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);   
+		        for(var i = 0; i < imageData.data.length; i += 4) {   
+		            // 当该像素是透明的，则设置成白色   
+		            if(imageData.data[i + 3] == 0) {   
+		                imageData.data[i] = 255;   
+		                imageData.data[i + 1] = 255;   
+		                imageData.data[i + 2] = 255;   
+		                imageData.data[i + 3] = 255;    
+		            }   
+		        }   
+		        ctx.putImageData(imageData, 0, 0); 
+				let newBase64 = canvas.toDataURL("image/jpeg", quality);//压缩图片大小（重点代码）
+				// 获取到当前的图片的大小，然后调整成自己需要的大小，例如说需要200KB-500KB之间（可以自行设置）
+				var k = 1;
+				var is_need_zip = false;
+				var base64_k = newBase64.length / 1024;
+				console.info("base64_k=%s",base64_k);
+				if (base64_k > max_size) {
+						k = -1;
+						is_need_zip = true;
+					}
+				else if (base64_k < min_size) {
+					k = 1;
+					//k = 0;
+					is_need_zip = false;
+					}
+				else {
+					k = 0;
+					is_need_zip = false;
+				}
+				console.info("is_need_zip=%s",is_need_zip);	
+				var finalBase64 = newBase64;
+				while ( is_need_zip ) {
+					quality = quality - k * 0.02;
+					if (quality < 0 ) {
+						quality = 0.001;
+						break;
+						}
+					finalBase64 = newBase64;
+					newBase64 = canvas.toDataURL("image/jpeg", quality);
+					base64_k = newBase64.length / 1024;
+					console.info("quality=%s",quality);
+					//console.info("base64_k=%s",base64_k);
+					if (base64_k > max_size) {
+						k = 1;
+						is_need_zip = true;
+						finalBase64 = newBase64;
+						console.info("continue to zip, this size-kb: ",base64_k);
+						}
+					else if (base64_k < min_size) {
+						k = -1;
+						is_need_zip = false;
+						console.info("little than min_size, this size-kb: ",base64_k);
+						}
+					else {
+					    finalBase64 = newBase64;
+						console.info("final_base64=%s",base64_k);
+						break;
+					}
+					
+				}
+				myCallback(finalBase64);//回调函数，做你想要的操作（可以自行设置）
+				console.log("压缩倍数:", base64.length / finalBase64.length );
+				//calculte base64
+				
+			}
+        };
+
+    }
+	
+    function myCallback(base64) {
+        console.log("压缩后图片大小(KB):", base64.length / 1024);
+        document.getElementById("imgBox").innerHTML="<img src="+base64+">"
+    }
+	//Add base64
+	document.getElementById("upload_file").onchange = function () {
+                gen_base64();
+    };
+	function $_(id) {
+        return document.getElementById(id);
+    }
+	function gen_base64() {
+        var file = $_('upload_file').files[0];
+        r = new FileReader();  //本地预览
+        r.onload = function(){
+        $_('base64_output').value = r.result;
+        }
+        r.readAsDataURL(file);    //Base64
+        }
+
+</script>
+</html>
