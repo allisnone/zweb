@@ -1,4 +1,6 @@
-# coding: utf-8
+# -*- coding:utf-8 -*-
+#Author: allisnone
+
 from . import admin
 from flask import render_template
 

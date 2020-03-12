@@ -1,4 +1,6 @@
-# coding: utf-8
+# -*- coding:utf-8 -*-
+#Author: allisnone
+
 from app import app
 
 if __name__ == "__main__":

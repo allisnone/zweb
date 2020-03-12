@@ -1,4 +1,5 @@
-# coding: utf-8
+# -*- coding:utf-8 -*-
+#Author: allisnone
 from flask import Blueprint
 
 # 1. url_prefix & static_folder & template_folder为可选参数。

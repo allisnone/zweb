@@ -1,4 +1,6 @@
-# coding: utf-8
+# -*- coding:utf-8 -*-
+#Author: allisnone
+
 from flask import Blueprint
 admin = Blueprint("admin",__name__
                   #template_folder='/opt/auras/templates/',   #指定模板路径
