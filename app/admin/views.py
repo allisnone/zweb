@@ -1,28 +1,33 @@
 # -*- coding:utf-8 -*-
 #Author: allisnone
 
-from . import admin
-from flask import render_template
+from . import admin as auth
+from flask import render_template , url_for, session, redirect,request,jsonify
+from ..models import User , LoginForm , RegisterForm #, Article 
+from flask_login import current_user , login_required , login_user , logout_user , user_logged_in,LoginManager
 
+login_manager = LoginManager()
+login_manager.session_protection = 'strong'
+login_manager.login_view = 'login'
 
-@admin.route("/test")
+@auth.route("/test")
 def test():
     print('__name__',__name__)
     return render_template('admin/admin.html')  #返回home.html模板
-
-from . import admin as auth
-from flask import render_template , url_for, session, redirect
-
-from ..models import User , LoginForm , RegisterForm #, Article 
-from flask_login import current_user , login_required , login_user , logout_user , user_logged_in
-
 
 
 @auth.route('/')
 def register_index():
     return render_template('admin/register.html')
 
+def make_json_dic(code,date=None,info=None):
+    return {'code': code, 'date': date, 'info': info}
 
+def mcc_time():
+    return '2020-031-2'
+
+def mcc_info(str):
+    return str
 
 @auth.route('/register',methods=['POST','GET'])
 def register():
@@ -129,6 +134,19 @@ def activate(token):
     else:
         mcc_print('none')
 
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+
+@auth.route('/')
+@auth.route('/main')
+@login_required
+def main():
+    return render_template(
+        'admin/main.html', username=current_user.username)
+    
 """
 # -*- coding: utf-8 -*-
 # Author: allisnone
