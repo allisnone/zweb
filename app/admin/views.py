@@ -3,15 +3,16 @@
 
 from . import admin as auth
 from flask import render_template , url_for, session, redirect,request,jsonify
-from ..models import User , LoginForm , RegisterForm ,db #, Article 
+from ..models import User, LoginForm, RegisterForm, AnonymousUser, db #, Article 
 from flask_login import current_user , login_required , login_user , logout_user , user_logged_in,LoginManager
-from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 # use login manager to manage session
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'login'
+login_manager.anonymous_user = AnonymousUser
 # csrf protection
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 
 
 
@@ -25,7 +26,7 @@ def test():
 def register_index():
     return render_template('admin/register.html')
 
-def make_json_dic(code,date=None,info=None):
+def make_json_dic(code,user_username=None,date=None,info=None):
     return {'code': code, 'date': date, 'info': info}
 
 def mcc_time():
@@ -44,7 +45,7 @@ def register():
         return jsonify(dic)       
     else:
         if request.method=='POST':
-            form = Register_Form()
+            form = RegisterForm()
             if form.mcc_validate():
             #if form.validate_on_submit():
                 name=form.username.data
@@ -111,7 +112,7 @@ def login():
                     return jsonify(dic)
             else:
                 dic=make_json_dic(301,user_username=current_user.name,date=mcc_time(),info=mcc_info('authenticate fail.'))
-                return render_template('login.html')
+                return render_template('admin/login.html')#,form=form)
         else:
             dic=make_json_dic(404)
             return render_template('admin/login.html')
@@ -147,6 +148,20 @@ def activate(token):
 def load_user(user_id):
     return User.get(user_id)
 
+
+
+@auth.route('/login_json')
+def login_json():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user_name = request.form.get('username', None)
+        password = request.form.get('password', None)
+        remember_me = request.form.get('remember_me', False)
+        user = User(user_name)
+        if user.verify_password(password):
+            login_user(user, remember=remember_me)
+            return redirect(request.args.get('next') or url_for('main'))
+    return render_template('login.html', title="Sign In", form=form)
 
 @auth.route('/')
 @auth.route('/main')

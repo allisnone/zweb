@@ -3,7 +3,7 @@
 
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin,AnonymousUserMixin
 from flask_sqlalchemy import SQLAlchemy
 import json
 import uuid
@@ -34,8 +34,8 @@ class LoginForm(FlaskForm):
     password = PasswordField('密码', validators=[Required(), Length(6, 24)])
     remember_me = BooleanField('记住我')
     submit = SubmitField('提交')
-    
-     
+       
+             
 class User(UserMixin):
     def __init__(self, username):
         self.username = username
@@ -81,7 +81,16 @@ class User(UserMixin):
         except ValueError:
             return None
         return None
- 
+    
+    def is_authenticated(self):
+        return True
+    
+    def is_active(self):
+        return True
+    
+    def is_anonymous(self):
+        return False
+    
     def get_id(self):
         """get user id from profile file, if not exist, it will
         generate a uuid for the user.
@@ -114,6 +123,12 @@ class User(UserMixin):
         except:
             return None
         return None
+
+class AnonymousUser(AnonymousUserMixin):
+    def can(self,permissions):
+        return False
+    def is_administrator(self):
+        return False
 
 class Student(db.Model):
     # 定义id主键，自增字段
